@@ -1,0 +1,81 @@
+name: Daily AI Content
+
+on:
+  schedule:
+    - cron: "20 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure pehtheme-hugo Theme
+        run: |
+          if [ ! -d themes/pehtheme-hugo ]; then
+            git clone --depth=1 https://github.com/fauzanmy/pehtheme-hugo.git themes/pehtheme-hugo
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "latest"
+          extended: true
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate editorial plan and redirects
+        run: |
+          python scripts/build_editorial_plan.py --start-date 2026-03-27 --days 365
+          python scripts/generate_redirects.py
+
+      - name: Generate today's post via OpenAI
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          APIFY_API_TOKEN: ${{ secrets.APIFY_API_TOKEN }}
+          APIFY_ACTOR_ID: ${{ vars.APIFY_ACTOR_ID }}
+          APIFY_GOOGLE_API_KEY: ${{ secrets.APIFY_GOOGLE_API_KEY }}
+          APIFY_NEGATIVE_PROMPT: ${{ vars.APIFY_NEGATIVE_PROMPT }}
+          APIFY_NUMBER_OF_IMAGES: ${{ vars.APIFY_NUMBER_OF_IMAGES }}
+          APIFY_DEMO_MODE: ${{ vars.APIFY_DEMO_MODE }}
+          APIFY_IMAGE_PROMPT_PREFIX: ${{ vars.APIFY_IMAGE_PROMPT_PREFIX }}
+          APIFY_RESOLUTION: ${{ vars.APIFY_RESOLUTION }}
+          APIFY_STYLE: ${{ vars.APIFY_STYLE }}
+          DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_DIR: ${{ secrets.FTP_DIR }}
+        run: |
+          PUBLISH_DATE="$(TZ=Europe/Berlin date +%F)"
+          TARGET="${DEPLOY_TARGET:-none}"
+          python scripts/generate_daily_post.py --publish-date "$PUBLISH_DATE" --deploy-target "$TARGET"
+
+      - name: Commit and push content update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A content/blog data/redaktionsplan-365.csv planung/redaktionsplan-365.md static/_redirects
+          if [ -d static/images/blog ]; then
+            git add -A static/images/blog
+          fi
+          if git diff --staged --quiet; then
+            echo "No content changes generated."
+            exit 0
+          fi
+          git commit -m "chore(content): daily ai post $(TZ=Europe/Berlin date +%F)"
+          git push

@@ -1,0 +1,61 @@
+name: Deploy Hugo to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure pehtheme-hugo Theme
+        run: |
+          if [ ! -d themes/pehtheme-hugo ]; then
+            git clone --depth=1 https://github.com/fauzanmy/pehtheme-hugo.git themes/pehtheme-hugo
+          fi
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "latest"
+          extended: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate redirects
+        run: python scripts/generate_redirects.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build
+        run: hugo --minify --gc
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

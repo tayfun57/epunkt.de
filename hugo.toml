@@ -1,0 +1,61 @@
+baseURL = "https://eifelpunkt.de/"
+title = "eifelpunkt.de"
+theme = "pehtheme-hugo"
+defaultContentLanguage = "de"
+languageCode = "de-de"
+enableRobotsTXT = true
+enableEmoji = false
+summaryLength = 32
+googleAnalytics = ""
+disqusShortname = ""
+
+[outputs]
+home = ["HTML", "RSS"]
+
+[permalinks]
+blog = "/blog/:slug/"
+
+[pagination]
+pagerSize = 9
+
+[sitemap]
+changefreq = "daily"
+filename = "sitemap.xml"
+priority = 0.8
+
+[taxonomies]
+tag = "tags"
+category = "kategorien"
+
+[params]
+description = "Blog zur technologischen Entwicklung in der Eifel: Infrastruktur, Digitalisierung, Innovation und regionale IT-Trends."
+mainSections = ["blog"]
+keywords = ["Technologie Eifel", "Digitalisierung Eifel", "Innovation Eifel", "IT Eifel"]
+images = ["/images/social-card-eifelpunkt.svg"]
+
+[author]
+name = "eifelpunkt Redaktion"
+bio = "Technologie, Digitalisierung und Innovation in der Region Eifel."
+avatar = "/images/social-card-eifelpunkt.svg"
+
+[[params.socialIcons]]
+name = "rss"
+url = "/index.xml"
+
+[[menu.main]]
+identifier = "home"
+name = "Start"
+url = "/"
+weight = 10
+
+[[menu.main]]
+identifier = "blog"
+name = "Blog"
+url = "/blog/"
+weight = 20
+
+[[menu.main]]
+identifier = "tags"
+name = "Themen"
+url = "/tags/"
+weight = 30

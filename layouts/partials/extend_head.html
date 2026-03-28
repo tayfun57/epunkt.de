@@ -1,0 +1,50 @@
+{{- $desc := .Params.description | default .Summary | default site.Params.description -}}
+{{- $title := .Title | default site.Title -}}
+<meta name="description" content="{{ $desc | plainify | htmlEscape }}">
+{{- with .Params.keywords -}}
+<meta name="keywords" content="{{ delimit . ", " | htmlEscape }}">
+{{- else -}}
+<meta name="keywords" content="{{ delimit site.Params.keywords ", " | htmlEscape }}">
+{{- end -}}
+<meta name="geo.region" content="DE-RP">
+<meta name="geo.placename" content="Eifel">
+<meta property="og:locale" content="de_DE">
+<meta property="og:site_name" content="{{ site.Title | htmlEscape }}">
+
+{{- $canonical := .Permalink -}}
+{{- with .Params.canonicalURL -}}
+  {{- $canonical = . -}}
+{{- end -}}
+<link rel="canonical" href="{{ $canonical }}">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "{{ site.Title }}",
+  "url": "{{ site.BaseURL }}",
+  "description": "{{ $desc | plainify | htmlEscape }}",
+  "areaServed": "Eifel",
+  "knowsAbout": [
+    "Technologie Eifel",
+    "Digitalisierung Eifel",
+    "Innovation Eifel"
+  ],
+  "inLanguage": "de-DE"
+}
+</script>
+
+{{- if .IsPage -}}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ $title | htmlEscape }}",
+  "datePublished": "{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}",
+  "dateModified": "{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}",
+  "description": "{{ $desc | plainify | htmlEscape }}",
+  "mainEntityOfPage": "{{ .Permalink }}",
+  "keywords": "{{ delimit (.Params.keywords | default site.Params.keywords) ", " | htmlEscape }}"
+}
+</script>
+{{- end -}}

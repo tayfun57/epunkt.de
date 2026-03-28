@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+.hugo_build.lock
+public/
+resources/
+.idea/
+.vscode/
+.env
+__pycache__/
+*.pyc

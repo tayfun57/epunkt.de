@@ -1,0 +1,5 @@
+{{- $alt := .Text -}}
+{{- if not $alt -}}
+  {{- $alt = printf "%s | Technologie in der Eifel" .Page.Title -}}
+{{- end -}}
+<img loading="lazy" class="rounded-xl w-full h-auto my-6" src="{{ .Destination | safeURL }}" alt="{{ $alt | htmlEscape }}">
