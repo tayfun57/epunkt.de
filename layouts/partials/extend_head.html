@@ -47,4 +47,13 @@
   "keywords": "{{ delimit (.Params.keywords | default site.Params.keywords) ", " | htmlEscape }}"
 }
 </script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6838TXJGLD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6838TXJGLD');
+</script>
 {{- end -}}
