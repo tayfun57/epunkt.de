@@ -120,6 +120,22 @@ def normalize_text(value: str) -> str:
     return text
 
 
+def clean_env(name: str) -> str:
+    return (os.getenv(name) or "").strip()
+
+
+def clean_secret_env(name: str) -> str:
+    return clean_env(name).replace("\r", "").replace("\n", "")
+
+
+def first_non_empty_env(*names: str) -> str:
+    for name in names:
+        value = clean_env(name)
+        if value:
+            return value
+    return ""
+
+
 def read_plan(plan_file: Path, publish_date: date) -> PlanItem:
     with plan_file.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -495,13 +511,22 @@ def main() -> None:
         print(f"Post already exists: {existing}")
         return
 
-    api_key = os.getenv("OPENAI_API_KEY", "")
+    api_key = clean_secret_env("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY ist nicht gesetzt.")
+    if api_key == "***":
+        raise RuntimeError("OPENAI_API_KEY ist als Platzhalter ('***') gesetzt und deshalb ungueltig.")
+    if any(ch.isspace() for ch in api_key):
+        raise RuntimeError("OPENAI_API_KEY enthaelt Whitespace und ist dadurch ungueltig.")
     if OpenAI is None:
         raise RuntimeError("Python package 'openai' fehlt. Bitte: pip install -r requirements.txt")
 
-    client = OpenAI(api_key=api_key)
+    organization = (
+        first_non_empty_env("OPENAI_ORG_ID", "OPENAI_ORGANIZATION").replace("\r", "").replace("\n", "")
+        or None
+    )
+    project = clean_secret_env("OPENAI_PROJECT_ID") or None
+    client = OpenAI(api_key=api_key, organization=organization, project=project)
     payload = call_openai_json(client=client, model=args.model, prompt=build_prompt(plan_item))
 
     image_rel_path: str | None = None
