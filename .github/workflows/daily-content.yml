@@ -19,7 +19,10 @@ jobs:
 
       - name: Ensure pehtheme-hugo Theme
         run: |
-          if [ ! -d themes/pehtheme-hugo ]; then
+          if [ -d themes/pehtheme-hugo ] && [ ! -f themes/pehtheme-hugo/theme.toml ]; then
+            rm -rf themes/pehtheme-hugo
+          fi
+          if [ ! -f themes/pehtheme-hugo/theme.toml ]; then
             git clone --depth=1 https://github.com/fauzanmy/pehtheme-hugo.git themes/pehtheme-hugo
           fi
 

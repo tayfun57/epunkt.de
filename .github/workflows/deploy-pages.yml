@@ -27,7 +27,10 @@ jobs:
 
       - name: Ensure pehtheme-hugo Theme
         run: |
-          if [ ! -d themes/pehtheme-hugo ]; then
+          if [ -d themes/pehtheme-hugo ] && [ ! -f themes/pehtheme-hugo/theme.toml ]; then
+            rm -rf themes/pehtheme-hugo
+          fi
+          if [ ! -f themes/pehtheme-hugo/theme.toml ]; then
             git clone --depth=1 https://github.com/fauzanmy/pehtheme-hugo.git themes/pehtheme-hugo
           fi
 
@@ -50,6 +53,13 @@ jobs:
 
       - name: Build
         run: hugo --minify --gc
+
+      - name: Validate build output
+        run: |
+          if [ ! -s public/index.html ]; then
+            echo "public/index.html is missing or empty"
+            exit 1
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
