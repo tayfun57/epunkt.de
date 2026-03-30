@@ -51,6 +51,7 @@ Bildlogik:
   - `APIFY_RESOLUTION` (`1K`, `1.5K`, `2K`, `4K`)
   - `APIFY_STYLE` (z. B. `photorealistic`, `cinematic`)
 - falls Apify kein Bild liefert: Fallback auf `gpt-image-1`
+- Bildausgabe wird vor Verwendung nach WebP konvertiert und komprimiert (`IMAGE_WEBP_QUALITY`, default `82`)
 
 Optional FTP:
 

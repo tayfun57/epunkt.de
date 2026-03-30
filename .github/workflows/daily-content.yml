@@ -57,6 +57,7 @@ jobs:
           APIFY_IMAGE_PROMPT_PREFIX: ${{ vars.APIFY_IMAGE_PROMPT_PREFIX }}
           APIFY_RESOLUTION: ${{ vars.APIFY_RESOLUTION }}
           APIFY_STYLE: ${{ vars.APIFY_STYLE }}
+          IMAGE_WEBP_QUALITY: ${{ vars.IMAGE_WEBP_QUALITY }}
           DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_PORT: ${{ secrets.FTP_PORT }}

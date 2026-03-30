@@ -13,6 +13,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import date
 from ftplib import FTP, FTP_TLS, error_perm
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote_plus, urlparse
@@ -25,6 +26,13 @@ except ModuleNotFoundError:  # pragma: no cover - depends on local environment
     OpenAI = None  # type: ignore[assignment]
     AuthenticationError = Exception  # type: ignore[assignment]
     APIConnectionError = Exception  # type: ignore[assignment]
+
+try:
+    from PIL import Image, ImageOps, UnidentifiedImageError
+except ModuleNotFoundError:  # pragma: no cover - depends on local environment
+    Image = None  # type: ignore[assignment]
+    ImageOps = None  # type: ignore[assignment]
+    UnidentifiedImageError = Exception  # type: ignore[assignment]
 
 
 ANCHOR_LINK = "[Technologie in der Eifel](/blog/)"
@@ -138,6 +146,36 @@ def first_non_empty_env(*names: str) -> str:
     return ""
 
 
+def clamp(value: int, minimum: int, maximum: int) -> int:
+    return max(minimum, min(value, maximum))
+
+
+def int_from_env(name: str, default: int) -> int:
+    raw_value = clean_env(name)
+    if not raw_value:
+        return default
+    try:
+        return int(raw_value)
+    except ValueError:
+        return default
+
+
+def save_image_as_webp(image_bytes: bytes, out_path: Path, quality: int) -> None:
+    if Image is None or ImageOps is None:
+        raise RuntimeError("Python package 'Pillow' fehlt. Bitte: pip install -r requirements.txt")
+
+    safe_quality = clamp(quality, 1, 100)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with Image.open(BytesIO(image_bytes)) as raw_image:
+            image = ImageOps.exif_transpose(raw_image)
+            # Keep alpha if available, otherwise normalize to RGB for stable output size.
+            image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
+            image.save(out_path, format="WEBP", quality=safe_quality, method=6)
+    except UnidentifiedImageError as exc:
+        raise RuntimeError("Bilddaten konnten nicht als Bild erkannt werden.") from exc
+
+
 def read_plan(plan_file: Path, publish_date: date) -> PlanItem:
     with plan_file.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -241,14 +279,15 @@ def generate_image(
     image_model: str,
     prompt: str,
     out_path: Path,
+    webp_quality: int,
     size: str = "1536x1024",
 ) -> None:
     result = client.images.generate(model=image_model, prompt=prompt, size=size)
     b64_data = result.data[0].b64_json
     if not b64_data:
         raise RuntimeError("Image API did not return b64 data")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_bytes(base64.b64decode(b64_data))
+    raw_bytes = base64.b64decode(b64_data)
+    save_image_as_webp(raw_bytes, out_path=out_path, quality=webp_quality)
 
 
 def _extract_image_urls(item: Any) -> list[str]:
@@ -279,6 +318,7 @@ def _extract_image_urls(item: Any) -> list[str]:
 def fetch_apify_image(
     out_path: Path,
     item: PlanItem,
+    webp_quality: int,
     prompt_override: str | None = None,
     timeout_seconds: int = 120,
 ) -> bool:
@@ -359,8 +399,7 @@ def fetch_apify_image(
         try:
             image_response = requests.get(image_url, timeout=45)
             image_response.raise_for_status()
-            out_path.parent.mkdir(parents=True, exist_ok=True)
-            out_path.write_bytes(image_response.content)
+            save_image_as_webp(image_response.content, out_path=out_path, quality=webp_quality)
             print(f"Using image from Apify: {image_url}")
             return True
         except Exception as exc:  # pragma: no cover - network/API dependent
@@ -489,6 +528,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--image-model", default="gpt-image-1", help="OpenAI model for images")
     parser.add_argument("--image-size", default="1536x1024", help="Image size for generated image")
     parser.add_argument(
+        "--image-webp-quality",
+        type=int,
+        default=int_from_env("IMAGE_WEBP_QUALITY", 82),
+        help="WebP quality from 1-100 (higher = better quality, larger files)",
+    )
+    parser.add_argument(
         "--deploy-target",
         choices=["none", "ftp"],
         default=os.getenv("DEPLOY_TARGET", "none"),
@@ -503,6 +548,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    image_webp_quality = clamp(int(args.image_webp_quality), 1, 100)
     publish_date = date.fromisoformat(args.publish_date)
     site_root = Path(args.site_root).resolve()
     plan_item = read_plan(Path(args.plan_file), publish_date)
@@ -542,13 +588,16 @@ def main() -> None:
 
     image_rel_path: str | None = None
     if not args.skip_image:
-        image_name = f"{plan_item.slug}.png"
+        if Image is None or ImageOps is None:
+            raise RuntimeError("Bildverarbeitung aktiv, aber Pillow fehlt. Bitte: pip install -r requirements.txt")
+
+        image_name = f"{plan_item.slug}.webp"
         image_file = site_root / args.images_dir / image_name
-        image_alt = str(payload.get("image_alt") or f"{plan_item.title} in der Region Eifel").strip()
         image_prompt = str(payload.get("image_prompt") or plan_item.title).strip()
         fetched_from_apify = fetch_apify_image(
             out_path=image_file,
             item=plan_item,
+            webp_quality=image_webp_quality,
             prompt_override=image_prompt,
         )
         if fetched_from_apify:
@@ -560,6 +609,7 @@ def main() -> None:
                     image_model=args.image_model,
                     prompt=image_prompt,
                     out_path=image_file,
+                    webp_quality=image_webp_quality,
                     size=args.image_size,
                 )
                 image_rel_path = f"/images/blog/{image_name}"
