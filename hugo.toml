@@ -33,6 +33,12 @@ mainSections = ["blog"]
 keywords = ["Technologie Eifel", "Digitalisierung Eifel", "Innovation Eifel", "IT Eifel"]
 images = ["/images/social-card-eifelpunkt.svg"]
 
+[params.newsletter]
+title = "Bleiben Sie informiert! Jetzt fuer unseren Newsletter anmelden."
+text = "Treten Sie unserer Community bei und bleiben Sie auf dem Laufenden. Geben Sie einfach unten Ihre E-Mail-Adresse ein."
+placeholder = "E-Mail-Adresse..."
+button = "Abonnieren"
+
 [author]
 name = "eifelpunkt Redaktion"
 bio = "Technologie, Digitalisierung und Innovation in der Region Eifel."
