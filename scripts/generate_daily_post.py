@@ -198,6 +198,7 @@ Pflichtregeln:
 5) Der Body darf KEINE Frontmatter enthalten.
 6) Thema immer als Mix aus regionalem Eifel-Bezug (Kommune, Infrastruktur, Standortfaktor) und technologischer Entwicklung schreiben.
 7) Schreibe als neutraler Fachblog zum Authority-Aufbau, ohne Service-Pitch.
+8) Mindestens 700 Wörter soll der Artikel haben, aber nicht mehr als 1100 Wörter.
 
 Gib NUR JSON mit exakt diesen Feldern zurueck:
 {{
