@@ -20,9 +20,11 @@ from urllib.parse import quote_plus, urlparse
 import requests
 
 try:
-    from openai import OpenAI
+    from openai import APIConnectionError, AuthenticationError, OpenAI
 except ModuleNotFoundError:  # pragma: no cover - depends on local environment
     OpenAI = None  # type: ignore[assignment]
+    AuthenticationError = Exception  # type: ignore[assignment]
+    APIConnectionError = Exception  # type: ignore[assignment]
 
 
 ANCHOR_LINK = "[Technologie in der Eifel](/blog/)"
@@ -527,7 +529,15 @@ def main() -> None:
     )
     project = clean_secret_env("OPENAI_PROJECT_ID") or None
     client = OpenAI(api_key=api_key, organization=organization, project=project)
-    payload = call_openai_json(client=client, model=args.model, prompt=build_prompt(plan_item))
+    try:
+        payload = call_openai_json(client=client, model=args.model, prompt=build_prompt(plan_item))
+    except AuthenticationError as exc:
+        raise RuntimeError(
+            "OpenAI Auth fehlgeschlagen (401). Bitte OPENAI_API_KEY in GitHub Secrets erneuern "
+            "(nur den reinen Key ohne Quotes/Prefix) und Workflow neu starten."
+        ) from exc
+    except APIConnectionError as exc:
+        raise RuntimeError("OpenAI APIConnectionError: Verbindung zur OpenAI API fehlgeschlagen.") from exc
 
     image_rel_path: str | None = None
     if not args.skip_image:
