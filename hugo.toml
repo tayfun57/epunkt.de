@@ -39,7 +39,7 @@ text = "Treten Sie unserer Community bei und bleiben Sie auf dem Laufenden. Gebe
 placeholder = "E-Mail-Adresse..."
 button = "Abonnieren"
 
-[author]
+[params.author]
 name = "eifelpunkt Redaktion"
 bio = "Technologie, Digitalisierung und Innovation in der Region Eifel."
 avatar = "/images/social-card-eifelpunkt.svg"
@@ -47,6 +47,18 @@ avatar = "/images/social-card-eifelpunkt.svg"
 [[params.socialIcons]]
 name = "rss"
 url = "/index.xml"
+
+[[params.socialIcons]]
+name = "facebook"
+url = "#"
+
+[[params.socialIcons]]
+name = "twitter"
+url = "#"
+
+[[params.socialIcons]]
+name = "instagram"
+url = "#"
 
 [[menu.main]]
 identifier = "home"
