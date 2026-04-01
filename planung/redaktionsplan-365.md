@@ -9,10 +9,10 @@ Taeglicher Themenplan mit bewusst abwechslungsreichen Perspektiven fuer `Technol
 | 2026-03-29 | Energie-Monitoring in der Region Pruem: Chancen, Risiken und naechste Schritte fuer Gesundheitseinrichtungen | Datenstrategie |
 | 2026-03-30 | 5G- und Campusnetze in Gerolstein: Kooperationsmodelle fuer Mittelstand | Kooperationsmodelle |
 | 2026-03-31 | Energieprojekte und Datenschutz nach DSGVO in Kall: 7 konkrete Handlungsfelder | Nachhaltigkeit |
-| 2026-04-01 | Arbeitsmarkt im Kreis Euskirchen stabil | Arbeitsmarkt |
+| 2026-04-01 | Telemedizinische Infrastruktur in Heimbach: Was Industriebetriebe jetzt wissen muessen | Resilienz und Krisenvorsorge |
 | 2026-04-02 | Startups in Euskirchen: Leitfaden fuer IT-Sicherheit und Incident Response | Standortentwicklung |
-| 2026-04-03 | Schnellladepark an der A1 – Rastanlage „Rioler Wald" in Betrieb genommen | Energiewende |
-| 2026-04-04 | Das E-Bike-Projekt im Kreis Euskirchen steht vor dem Aus: Nur Euskirchen und Weilerswist wollen weitermachen, alle anderen Kommunen lehnen ab. | Energiewende |
+| 2026-04-03 | Digitale Verwaltungsprozesse in der Region Monschau: Chancen, Risiken und naechste Schritte fuer Logistik und Mobilitaet | Personal- und Fachkraefteblick |
+| 2026-04-04 | Low-Code-Automatisierung in Pruem: Sicherheits- und Datenschutzperspektive fuer Buergerinitiativen | Sicherheits- und Datenschutzperspektive |
 | 2026-04-05 | Standortfaktor Gerolstein: Warum Cloud-Migration fuer Handwerksbetriebe strategisch ist | Foerdermittel und Finanzierung |
 | 2026-04-06 | Kall: Standortvernetzung als Hebel fuer Vereine und Ehrenamt | Kosten-Nutzen-Betrachtung |
 | 2026-04-07 | Technologie-Update Heimbach: Geo- und Umweltdaten im Praxischeck fuer Kommunen | Umsetzungsfahrplan |
