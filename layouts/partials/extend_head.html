@@ -47,6 +47,8 @@
   "keywords": "{{ delimit (.Params.keywords | default site.Params.keywords) ", " | htmlEscape }}"
 }
 </script>
+{{- end -}}
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-6838TXJGLD"></script>
 <script>
@@ -56,4 +58,3 @@
 
   gtag('config', 'G-6838TXJGLD');
 </script>
-{{- end -}}
