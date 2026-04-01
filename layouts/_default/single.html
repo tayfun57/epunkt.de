@@ -57,7 +57,7 @@
           {{- $processedImage = $processedImage.Resize "750x" -}}
           <img class="rounded-lg" src="{{ $processedImage.Permalink }}" alt="{{ .Params.title }}" width="{{ $processedImage.Width }}" height="{{ $processedImage.Height }}">
         {{- else -}}
-          {{- $staticImage := printf "/" | printf "%s%s" $image | absURL -}}
+          {{- $staticImage := $image | absURL -}}
           <img class="rounded-lg" src="{{ $staticImage }}" alt="{{ .Params.title }}">
         {{- end -}}
       {{- end -}}
