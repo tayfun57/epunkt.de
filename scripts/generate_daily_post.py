@@ -16,7 +16,10 @@ from ftplib import FTP, FTP_TLS, error_perm
 from io import BytesIO
 from pathlib import Path
 from typing import Any
+import urllib.request
+import urllib.parse
 from urllib.parse import quote_plus, urlparse
+import xml.etree.ElementTree as ET
 
 import requests
 
@@ -176,6 +179,31 @@ def save_image_as_webp(image_bytes: bytes, out_path: Path, quality: int) -> None
         raise RuntimeError("Bilddaten konnten nicht als Bild erkannt werden.") from exc
 
 
+def fetch_rss_news(query: str = "Eifel Nachrichten", num_items: int = 3) -> list[dict[str, str]]:
+    url = f"https://news.google.com/rss/search?q={urllib.parse.quote_plus(query)}&hl=de&gl=DE&ceid=DE:de"
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    news_items = []
+    try:
+        with urllib.request.urlopen(req) as response:
+            xml_data = response.read()
+        root = ET.fromstring(xml_data)
+        for item in root.findall('.//item')[:num_items]:
+            title = item.findtext('title') or ""
+            link = item.findtext('link') or ""
+            description = item.findtext('description') or ""
+            # Strip basic HTML tags from description
+            description = re.sub(r'<[^>]+>', '', description).replace('&nbsp;', ' ').strip()
+            if title:
+                news_items.append({
+                    "title": title,
+                    "link": link,
+                    "description": description
+                })
+    except Exception as exc:
+        print(f"Fehler beim Abrufen der RSS-News: {exc}")
+    return news_items
+
+
 def read_plan(plan_file: Path, publish_date: date) -> PlanItem:
     with plan_file.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -217,11 +245,17 @@ def ensure_required_keywords(markdown: str) -> str:
     return markdown.rstrip() + suffix
 
 
-def build_prompt(item: PlanItem) -> str:
+def build_prompt(item: PlanItem, news_items: list[dict[str, str]] | None = None) -> str:
+    news_context = ""
+    if news_items:
+        news_context = "\nAktuelle Nachrichten aus der Eifel (als Inspiration, wähle eine interessante aus, fasse sie in eigenen Worten zusammen und mache sie zum Aufhänger, gib auch die Quelle an):\n"
+        for i, news in enumerate(news_items, 1):
+            news_context += f"{i}. {news['title']} - {news['description']} (Quelle: {news['link']})\n"
+
     return f"""
 Erstelle einen SEO-optimierten deutschen Blogartikel als JSON.
 
-Kontext:
+Kontext:{news_context}
 - Region: {item.region}
 - Regionaler Fokus: {item.healthcare_focus}
 - IT-Fokus: {item.it_focus}
@@ -576,8 +610,11 @@ def main() -> None:
     )
     project = clean_secret_env("OPENAI_PROJECT_ID") or None
     client = OpenAI(api_key=api_key, organization=organization, project=project)
+
+    news_items = fetch_rss_news()
+
     try:
-        payload = call_openai_json(client=client, model=args.model, prompt=build_prompt(plan_item))
+        payload = call_openai_json(client=client, model=args.model, prompt=build_prompt(plan_item, news_items=news_items))
     except AuthenticationError as exc:
         raise RuntimeError(
             "OpenAI Auth fehlgeschlagen (401). Bitte OPENAI_API_KEY in GitHub Secrets erneuern "
